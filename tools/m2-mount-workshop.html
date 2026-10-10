@@ -1,0 +1,1063 @@
+<title>M2 Mount Workshop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a garage bench — controls on the left in four numbered steps, a large 3D bay on the right; stacks on phones. */
+:root {
+  --bg: #eef1f4;        /* bench */
+  --panel: #ffffff;
+  --ink: #18202a;
+  --muted: #5a6573;
+  --line: #d3d9e0;
+  --bay: #dfe5ec;       /* 3D preview floor */
+  --accent: #b4650f;    /* work-light amber */
+  --accent-ink: #ffffff;
+  --accent-soft: #f6e7d3;
+  --ok: #2f7d4a;
+  --warn: #a8461b;
+  --focus: #2563c9;
+  --font-display: "Barlow Semi Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161c; --panel: #1a2029; --ink: #e6ebf1; --muted: #9aa6b4; --line: #2c3541; --bay: #232b36;
+    --accent: #e8a24a; --accent-ink: #1a1206; --accent-soft: #3a2a14; --ok: #6cc28a; --warn: #f08a5d; --focus: #7aa7ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161c; --panel: #1a2029; --ink: #e6ebf1; --muted: #9aa6b4; --line: #2c3541; --bay: #232b36;
+  --accent: #e8a24a; --accent-ink: #1a1206; --accent-soft: #3a2a14; --ok: #6cc28a; --warn: #f08a5d; --focus: #7aa7ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1280px; margin: 0 auto; padding-inline: 20px; padding-block: 20px 40px; }
+header.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; margin-bottom: 16px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 30px; letter-spacing: 0.01em; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; }
+.grid { display: grid; grid-template-columns: minmax(300px, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.steps { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+section.step { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.step h2 { font-family: var(--font-display); font-weight: 600; font-size: 19px; margin: 0; display: flex; align-items: center; gap: 10px; }
+.step h2 .n { font-family: var(--font-mono); font-size: 12px; font-weight: 500; width: 22px; height: 22px; border-radius: 50%; display: inline-grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
+.hint { color: var(--muted); font-size: 13.5px; margin: 0; }
+.drop { border: 2px dashed var(--line); border-radius: var(--radius); padding: 18px 14px; text-align: center; display: flex; flex-direction: column; gap: 8px; align-items: center; transition: border-color .15s, background .15s; }
+.drop.over { border-color: var(--accent); background: var(--accent-soft); }
+.drop strong { font-family: var(--font-display); font-size: 18px; font-weight: 600; }
+.files { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-family: var(--font-mono); font-size: 12.5px; }
+.files li { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.files li span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.files .tag { color: var(--muted); flex: none; }
+.files li.missing, .files li.missing .tag { color: var(--warn); font-weight: 500; }
+button, .btn { font: 500 14px var(--font-body); border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+button:hover { border-color: var(--muted); }
+button:focus-visible, input:focus-visible, select:focus-visible, label.btn:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 15.5px; padding: 10px 16px; justify-content: center; }
+button.primary:disabled { opacity: .5; cursor: not-allowed; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.field { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 4px 10px; align-items: center; }
+.field label { font-size: 13.5px; color: var(--muted); }
+input[type=text], input[type=number] { font: 14px var(--font-mono); padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); width: 100%; min-width: 0; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.slider { display: grid; grid-template-columns: 112px minmax(0, 1fr) 54px; gap: 10px; align-items: center; }
+.slider label { font-size: 13.5px; color: var(--muted); }
+.slider output { font: 12.5px var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.stats { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.stats b { color: var(--ink); font-weight: 500; }
+.status { font-size: 13.5px; margin: 0; min-height: 1.5em; }
+.status.ok { color: var(--ok); } .status.bad { color: var(--warn); }
+.pill { display: inline-block; font: 500 12px var(--font-mono); padding: 2px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+.pill.warn { background: transparent; border: 1px solid var(--warn); color: var(--warn); }
+.bay { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.bay-bar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; padding: 6px 11px; font-size: 13.5px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.canvas-box { position: relative; height: min(68vh, 620px); min-height: 320px; background: var(--bay); touch-action: none; }
+.canvas-box canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.canvas-box canvas:active { cursor: grabbing; }
+.legend { position: absolute; left: 12px; bottom: 10px; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; color: var(--muted); pointer-events: none; max-width: calc(100% - 24px); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.example-tag { position: absolute; right: 12px; top: 10px; }
+.noscene { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); padding: 20px; text-align: center; }
+details { font-size: 13.5px; color: var(--muted); }
+details summary { cursor: pointer; color: var(--ink); }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } .bay { order: -1; position: static; } .canvas-box { height: 52vh; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>M2 Mount Workshop</h1>
+    <p class="sub">Turn an .obj model into a World of Warcraft 3.3.5a mount: <span style="font-family:var(--font-mono)">.m2 + 00.skin + .blp</span></p>
+  </header>
+
+  <div class="grid">
+    <div class="steps">
+      <section class="step" aria-labelledby="s1">
+        <h2 id="s1"><span class="n">1</span>Drop your model</h2>
+        <div class="drop" id="drop">
+          <strong>Drag files here</strong>
+          <p class="hint">The .obj, its .mtl and the texture pictures (.png or .jpg). You can drop them all at once.</p>
+          <label class="btn" for="pick">Choose files…<input id="pick" type="file" multiple accept=".obj,.mtl,.png,.jpg,.jpeg,.webp,.bmp,.gif" class="visually-hidden"></label>
+        </div>
+        <ul class="files" id="fileList"></ul>
+        <p class="hint">Name the wheel parts “Wheel…” in your 3D program and they will spin when the mount moves.</p>
+        <p class="hint">Lights: name parts “Lamp…” to make them glow at night, “…Glow” or “…Beam” for additive light effects, and “Brake…” for lights that only show while standing still.</p>
+      </section>
+
+      <section class="step" aria-labelledby="s2">
+        <h2 id="s2"><span class="n">2</span>Stand it up straight</h2>
+        <p class="hint">Wheels on the grid, nose toward the amber <b>FRONT</b> arrow. Each button turns it a quarter turn.</p>
+        <div class="row">
+          <button id="rotZ" type="button" title="Turn left 90° (around the up axis)">↺ Turn</button>
+          <button id="rotY" type="button" title="Tip nose down 90°">⤵ Tip</button>
+          <button id="rotX" type="button" title="Roll onto its side 90°">⟲ Roll</button>
+          <button id="rotReset" type="button">Reset</button>
+        </div>
+        <div class="field">
+          <label for="len">Length (yards)</label>
+          <input id="len" type="number" step="0.1" min="0.2" max="60" value="5">
+        </div>
+        <div class="stats" id="sizeStats"></div>
+      </section>
+
+      <section class="step" aria-labelledby="s3">
+        <h2 id="s3"><span class="n">3</span>Seat and wheels</h2>
+        <p class="hint">Move the amber rider until they sit where the driver should be.</p>
+        <div class="slider"><label for="seatX">Forward / back</label><input id="seatX" type="range" min="-3" max="3" step="0.01" value="0"><output id="seatXo" for="seatX"></output></div>
+        <div class="slider"><label for="seatY">Left / right</label><input id="seatY" type="range" min="-1.5" max="1.5" step="0.01" value="0.5"><output id="seatYo" for="seatY"></output></div>
+        <div class="slider"><label for="seatZ">Height</label><input id="seatZ" type="range" min="0" max="4" step="0.01" value="1"><output id="seatZo" for="seatZ"></output></div>
+        <label class="check"><input id="passenger" type="checkbox" checked> Passenger seat (mirrored on the other side)</label>
+        <label class="check"><input id="reverse" type="checkbox"> Spin wheels the other way</label>
+        <p class="hint" id="wheelNote"></p>
+      </section>
+
+      <section class="step" aria-labelledby="s4">
+        <h2 id="s4"><span class="n">4</span>Save for WoW</h2>
+        <div class="field">
+          <label for="name">Model name</label>
+          <input id="name" type="text" value="Truck" spellcheck="false" autocomplete="off">
+          <label for="folder">Game folder</label>
+          <input id="folder" type="text" value="Creature\Truck" spellcheck="false" autocomplete="off">
+        </div>
+        <button class="primary" id="save" type="button">Download for WoW (.zip)</button>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+        <div class="stats" id="buildStats"></div>
+        <details>
+          <summary>What is in the zip</summary>
+          <p>The model folder (<code>Creature\…\Name.m2</code>, <code>Name00.skin</code>, <code>.blp</code> textures) ready to copy into a patch MPQ, plus <code>HOW_TO_INSTALL.txt</code> with the DBC rows. Animations: Stand, Walk and Run. Rider points: mount (0), driver seat (39), passenger seat (40).</p>
+        </details>
+      </section>
+    </div>
+
+    <div class="bay" aria-label="3D preview">
+      <div class="bay-bar">
+        <div class="seg" role="group" aria-label="Animation">
+          <button type="button" data-anim="0" aria-pressed="false">Stand</button>
+          <button type="button" data-anim="1" aria-pressed="false">Walk</button>
+          <button type="button" data-anim="2" aria-pressed="true">Run</button>
+        </div>
+        <div class="seg" role="group" aria-label="Camera">
+          <button type="button" data-view="persp" aria-pressed="true">3/4</button>
+          <button type="button" data-view="side" aria-pressed="false">Side</button>
+          <button type="button" data-view="front" aria-pressed="false">Front</button>
+          <button type="button" data-view="top" aria-pressed="false">Top</button>
+        </div>
+      </div>
+      <div class="canvas-box" id="box">
+        <canvas id="cv" aria-label="3D view of the model. Drag to turn the camera, scroll to zoom."></canvas>
+        <span class="pill example-tag" id="exampleTag">Example model</span>
+        <div class="legend"><span><i style="background:var(--accent)"></i>front and rider</span><span>grid = 1 yard</span><span>drag to look around · scroll to zoom</span></div>
+        <div class="noscene" id="noscene" hidden>The 3D preview needs WebGL, which this browser has turned off. Converting still works.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* M2 converter core: OBJ/MTL parsing, model building, WotLK (264) M2 + skin, BLP2 and ZIP writers.
+   No DOM use here, so the same code runs in the page and in Node for testing. */
+(function (root) {
+  "use strict";
+
+  // ---------------------------------------------------------------- little-endian byte builder
+  class Bytes {
+    constructor(size) { this.buf = new Uint8Array(size || 1024); this.dv = new DataView(this.buf.buffer); this.len = 0; }
+    ensure(n) {
+      if (this.len + n <= this.buf.length) return;
+      let cap = this.buf.length * 2; while (cap < this.len + n) cap *= 2;
+      const nb = new Uint8Array(cap); nb.set(this.buf.subarray(0, this.len)); this.buf = nb; this.dv = new DataView(nb.buffer);
+    }
+    u8(v) { this.ensure(1); this.dv.setUint8(this.len, v); this.len += 1; return this; }
+    i8(v) { this.ensure(1); this.dv.setInt8(this.len, v); this.len += 1; return this; }
+    u16(v) { this.ensure(2); this.dv.setUint16(this.len, v, true); this.len += 2; return this; }
+    i16(v) { this.ensure(2); this.dv.setInt16(this.len, v, true); this.len += 2; return this; }
+    u32(v) { this.ensure(4); this.dv.setUint32(this.len, v >>> 0, true); this.len += 4; return this; }
+    i32(v) { this.ensure(4); this.dv.setInt32(this.len, v, true); this.len += 4; return this; }
+    f32(v) { this.ensure(4); this.dv.setFloat32(this.len, v, true); this.len += 4; return this; }
+    raw(u8) { this.ensure(u8.length); this.buf.set(u8, this.len); this.len += u8.length; return this; }
+    ascii(s) { for (let i = 0; i < s.length; i++) this.u8(s.charCodeAt(i) & 0x7f); return this; }
+    bytes() { return this.buf.slice(0, this.len); }
+  }
+  const pack = (fn) => { const b = new Bytes(64); fn(b); return b.bytes(); };
+
+  // Data area that hands out 16-byte aligned offsets (offset 0 is reserved for the header).
+  class Blob {
+    constructor(reserve) { this.b = new Bytes(1 << 16); this.b.raw(new Uint8Array(reserve)); }
+    put(u8) {
+      if (!u8 || !u8.length) return 0;
+      const pad = (16 - (this.b.len % 16)) % 16; this.b.raw(new Uint8Array(pad));
+      const off = this.b.len; this.b.raw(u8); return off;
+    }
+    array(u8, count) { return pack(b => b.u32(count).u32(count ? this.put(u8) : 0)); }
+  }
+  const EMPTY_ARR = pack(b => b.u32(0).u32(0));
+
+  // ---------------------------------------------------------------- quaternion compression
+  function compressQuat(q) { // q = [w,x,y,z] -> int16 [x,y,z,w]
+    let [w, x, y, z] = q; const n = Math.hypot(w, x, y, z) || 1;
+    return [x / n, y / n, z / n, w / n].map(f => {
+      f = Math.max(-1, Math.min(1, f)); let s = Math.round(f * 32767);
+      s = f >= 0 ? s - 32768 : s + 32767; return Math.max(-32768, Math.min(32767, s));
+    });
+  }
+  function decompressQuat(s) { const f = s.map(v => (v < 0 ? v + 32768 : v - 32767) / 32767); return [f[3], f[0], f[1], f[2]]; }
+
+  function weights4(influences) {
+    const inf = influences.filter(i => i[1] > 0).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    if (!inf.length) return { w: [255, 0, 0, 0], i: [0, 0, 0, 0] };
+    const tot = inf.reduce((s, x) => s + x[1], 0);
+    const w = inf.map(x => Math.round(x[1] / tot * 255)); w[0] += 255 - w.reduce((a, b) => a + b, 0);
+    const i = inf.map(x => x[0]); while (w.length < 4) { w.push(0); i.push(0); }
+    return { w, i };
+  }
+
+  // ---------------------------------------------------------------- M2 writer (WotLK, version 264)
+  function track(blob, perSeq, packValue, interp) {
+    const n = perSeq.length;
+    if (!perSeq.some(k => k && k.length)) return pack(b => b.u16(0).i16(-1).u32(0).u32(0).u32(0).u32(0));
+    const ts = new Bytes(16 * n), vs = new Bytes(16 * n);
+    for (const keys of perSeq) {
+      if (keys && keys.length) {
+        ts.raw(blob.array(pack(b => keys.forEach(k => b.u32(k[0]))), keys.length));
+        vs.raw(blob.array(pack(b => keys.forEach(k => packValue(b, k[1]))), keys.length));
+      } else { ts.raw(EMPTY_ARR); vs.raw(EMPTY_ARR); }
+    }
+    return pack(b => b.u16(interp == null ? 1 : interp).i16(-1).raw(blob.array(ts.bytes(), n)).raw(blob.array(vs.bytes(), n)));
+  }
+
+  function bounds(verts) {
+    const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity]; let r = 0;
+    for (const v of verts) { for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], v.pos[k]); mx[k] = Math.max(mx[k], v.pos[k]); } r = Math.max(r, Math.hypot(...v.pos)); }
+    return { mn, mx, r };
+  }
+
+  function writeM2(m, name) {
+    const HEADER = 304, blob = new Blob(HEADER), nseq = m.sequences.length, verts = m.vertices, bones = m.bones;
+    const { mn, mx, r } = bounds(verts);
+    const nameRaw = pack(b => b.ascii(name).u8(0));
+    const hName = blob.array(nameRaw, nameRaw.length);
+
+    const seq = new Bytes(64 * nseq);
+    m.sequences.forEach((s, i) => {
+      seq.u16(s.id).u16(0).u32(Math.round(s.duration)).f32(s.movespeed || 0).u32(s.flags == null ? 0x20 : s.flags)
+        .i16(0x7fff).u16(0).u32(0).u32(0).u32(s.blend == null ? 150 : s.blend);
+      [...mn, ...mx, r].forEach(f => seq.f32(f)); seq.i16(-1).u16(i);
+    });
+    const hSeqs = blob.array(seq.bytes(), nseq);
+    const maxId = Math.max(...m.sequences.map(s => s.id));
+    const look = new Array(maxId + 1).fill(0xffff);
+    m.sequences.forEach((s, i) => { if (look[s.id] === 0xffff) look[s.id] = i; });
+    const hSeqLook = blob.array(pack(b => look.forEach(v => b.u16(v))), look.length);
+
+    const bb = new Bytes(88 * bones.length);
+    for (const bone of bones) {
+      const tr = bone.tracks || {};
+      const list = key => Array.from({ length: nseq }, (_, i) => (tr[i] && tr[i][key]) || []);
+      const tT = track(blob, list("trans"), (b, v) => b.f32(v[0]).f32(v[1]).f32(v[2]));
+      const tR = track(blob, list("rot"), (b, q) => compressQuat(q).forEach(s => b.i16(s)));
+      const tS = track(blob, list("scale"), (b, v) => b.f32(v[0]).f32(v[1]).f32(v[2]));
+      const animated = ["trans", "rot", "scale"].some(k => list(k).some(x => x.length));
+      bb.i32(bone.key_bone == null ? -1 : bone.key_bone).u32(animated ? 0x200 : 0).i16(bone.parent).u16(0).u32(0)
+        .raw(tT).raw(tR).raw(tS).f32(bone.pivot[0]).f32(bone.pivot[1]).f32(bone.pivot[2]);
+    }
+    const hBones = blob.array(bb.bytes(), bones.length);
+
+    const kb = bones.map(b => (b.key_bone == null ? -1 : b.key_bone)); const kmax = Math.max(...kb);
+    const klook = kmax >= 0 ? new Array(kmax + 1).fill(-1) : [];
+    kb.forEach((k, i) => { if (k >= 0) klook[k] = i; });
+    const hKey = blob.array(pack(b => klook.forEach(v => b.i16(v))), klook.length);
+
+    const vb = new Bytes(48 * verts.length);
+    for (const v of verts) {
+      const { w, i } = weights4(v.bones);
+      vb.f32(v.pos[0]).f32(v.pos[1]).f32(v.pos[2]); w.forEach(x => vb.u8(x)); i.forEach(x => vb.u8(x));
+      vb.f32(v.normal[0]).f32(v.normal[1]).f32(v.normal[2]).f32(v.uv[0]).f32(v.uv[1]).f32(0).f32(0);
+    }
+    const hVerts = blob.array(vb.bytes(), verts.length);
+
+    const tb = new Bytes(16 * m.textures.length);
+    for (const t of m.textures) {
+      const h = (t.type || 0) === 0 ? (() => { const p = pack(b => b.ascii(t.path).u8(0)); return blob.array(p, p.length); })() : EMPTY_ARR;
+      tb.u32(t.type || 0).u32(t.flags == null ? 3 : t.flags).raw(h);
+    }
+    const hTex = blob.array(tb.bytes(), m.textures.length);
+    const tw = track(blob, Array.from({ length: nseq }, () => [[0, 32767]]), (b, v) => b.i16(v), 0);
+    const hTexW = blob.array(tw, 1);
+    const types = m.textures.map(t => t.type || 0); const rlook = new Array(Math.max(...types) + 1).fill(-1);
+    types.forEach((ty, i) => { if (rlook[ty] === -1) rlook[ty] = i; });
+    const hRepl = blob.array(pack(b => rlook.forEach(v => b.i16(v))), rlook.length);
+    const hMats = blob.array(pack(b => m.materials.forEach(x => b.u16(x.flags || 0).u16(x.blend || 0))), m.materials.length);
+    const nb = bones.length, nt = m.textures.length;
+    const hBoneLook = blob.array(pack(b => { for (let i = 0; i < nb; i++) b.u16(i); }), nb);
+    const hTexLook = blob.array(pack(b => { for (let i = 0; i < nt; i++) b.u16(i); }), nt);
+    const hTexUnit = blob.array(pack(b => b.i16(0)), 1);
+    const hTransLook = blob.array(pack(b => b.u16(0)), 1);
+    const hUVLook = blob.array(pack(b => b.i16(-1)), 1);
+
+    const ab = new Bytes(40 * m.attachments.length);
+    for (const a of m.attachments) {
+      const anim = track(blob, Array.from({ length: nseq }, () => [[0, 1]]), (b, v) => b.u8(v), 0);
+      ab.u32(a.id).u16(a.bone).u16(0).f32(a.pos[0]).f32(a.pos[1]).f32(a.pos[2]).raw(anim);
+    }
+    const hAtt = blob.array(ab.bytes(), m.attachments.length);
+    let hAttLook = EMPTY_ARR;
+    if (m.attachments.length) {
+      const amax = Math.max(...m.attachments.map(a => a.id)); const al = new Array(amax + 1).fill(0xffff);
+      m.attachments.forEach((a, i) => { al[a.id] = i; });
+      hAttLook = blob.array(pack(b => al.forEach(v => b.u16(v))), al.length);
+    }
+
+    const h = new Bytes(HEADER);
+    h.ascii("MD20").u32(264).raw(hName).u32(0).raw(EMPTY_ARR)
+      .raw(hSeqs).raw(hSeqLook).raw(hBones).raw(hKey).raw(hVerts).u32(1)
+      .raw(EMPTY_ARR).raw(hTex).raw(hTexW).raw(EMPTY_ARR)
+      .raw(hRepl).raw(hMats).raw(hBoneLook).raw(hTexLook).raw(hTexUnit).raw(hTransLook).raw(hUVLook);
+    for (let k = 0; k < 2; k++) [...mn, ...mx, r].forEach(f => h.f32(f));
+    h.raw(EMPTY_ARR).raw(EMPTY_ARR).raw(EMPTY_ARR).raw(hAtt).raw(hAttLook);
+    for (let k = 0; k < 6; k++) h.raw(EMPTY_ARR);
+    if (h.len !== HEADER) throw new Error("internal: header size " + h.len);
+    const out = blob.b.bytes(); out.set(h.bytes(), 0); return out;
+  }
+
+  function writeSkin(m) {
+    const verts = m.vertices, blob = new Blob(48);
+    const skinV = [], tri = [], props = []; const subs = new Bytes(), units = new Bytes();
+    m.submeshes.forEach((sm, si) => {
+      const usedSet = new Set(); sm.tris.forEach(t => t.forEach(i => usedSet.add(i)));
+      const used = [...usedSet].sort((a, b) => a - b);
+      const local = new Map(); used.forEach((g, n) => local.set(g, skinV.length + n));
+      const vstart = skinV.length, istart = tri.length;
+      if (skinV.length + used.length > 65535) throw new Error("Too many vertices (max 65,535). Use a lighter model.");
+      used.forEach(g => skinV.push(g));
+      sm.tris.forEach(t => tri.push(local.get(t[0]), local.get(t[1]), local.get(t[2])));
+      let inf = 0;
+      used.forEach(g => { const { w, i } = weights4(verts[g].bones); props.push(i); inf = Math.max(inf, w.filter(x => x).length); });
+      const pts = used.map(g => verts[g].pos);
+      const c = [0, 1, 2].map(k => pts.reduce((s, p) => s + p[k], 0) / pts.length);
+      const lo = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), hi = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k])));
+      const sc = [0, 1, 2].map(k => (lo[k] + hi[k]) / 2);
+      const sr = Math.max(...pts.map(p => Math.hypot(p[0] - sc[0], p[1] - sc[1], p[2] - sc[2])));
+      const ic = tri.length - istart;
+      if (ic > 0xffff) throw new Error("A part of the model has too many triangles (max 21,845 per texture).");
+      subs.u16(sm.section_id || 0).u16(istart >>> 16).u16(vstart).u16(used.length).u16(istart & 0xffff).u16(ic)
+        .u16(m.bones.length).u16(0).u16(Math.max(1, inf)).u16(0);
+      [...c, ...sc, sr].forEach(f => subs.f32(f));
+      units.u8(0x10).i8(sm.priority || 0).i16(0).u16(si).u16(si).i16(-1).u16(sm.material || 0).u16(0).u16(1)
+        .u16(sm.texture || 0).u16(0).u16(0).u16(0);
+    });
+    const hV = blob.array(pack(b => skinV.forEach(v => b.u16(v))), skinV.length);
+    const hT = blob.array(pack(b => tri.forEach(v => b.u16(v))), tri.length);
+    const hP = blob.array(pack(b => props.forEach(p => p.forEach(x => b.u8(x)))), props.length);
+    const hS = blob.array(subs.bytes(), m.submeshes.length);
+    const hU = blob.array(units.bytes(), m.submeshes.length);
+    const h = pack(b => b.ascii("SKIN").raw(hV).raw(hT).raw(hP).raw(hS).raw(hU).u32(Math.max(1, Math.min(m.bones.length, 256))));
+    const out = blob.b.bytes(); out.set(h, 0); return out;
+  }
+
+  // ---------------------------------------------------------------- BLP2 writer (palette, 8-bit alpha, mipmaps)
+  function nextPow2(n, cap) { let p = 1; while (p < n) p *= 2; return Math.min(p, cap || 1024); }
+  function resizeNearest(src, w, h, W, H) {
+    const out = new Uint8ClampedArray(W * H * 4);
+    for (let y = 0; y < H; y++) { const sy = Math.floor(y * h / H);
+      for (let x = 0; x < W; x++) { const sx = Math.floor(x * w / W), s = (sy * w + sx) * 4, d = (y * W + x) * 4;
+        out[d] = src[s]; out[d + 1] = src[s + 1]; out[d + 2] = src[s + 2]; out[d + 3] = src[s + 3]; } }
+    return out;
+  }
+  function half(src, w, h) {
+    const W = Math.max(1, w >> 1), H = Math.max(1, h >> 1), out = new Float32Array(W * H * 4);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) for (let c = 0; c < 4; c++) {
+      let s = 0, n = 0;
+      for (let dy = 0; dy < (h > 1 ? 2 : 1); dy++) for (let dx = 0; dx < (w > 1 ? 2 : 1); dx++) {
+        s += src[((Math.min(h - 1, y * 2 + dy)) * w + Math.min(w - 1, x * 2 + dx)) * 4 + c]; n++; }
+      out[(y * W + x) * 4 + c] = s / n;
+    }
+    return { px: out, w: W, h: H };
+  }
+  function buildPalette(px) {
+    const counts = new Map();
+    for (let i = 0; i < px.length; i += 4) { const k = (px[i] << 16) | (px[i + 1] << 8) | px[i + 2]; counts.set(k, (counts.get(k) || 0) + 1); }
+    let cols = [...counts.entries()].map(([k, n]) => [k >> 16 & 255, k >> 8 & 255, k & 255, n]);
+    if (cols.length <= 256) return cols.map(c => c.slice(0, 3));
+    let boxes = [cols];
+    while (boxes.length < 256) {
+      let best = -1, bi = -1, bax = 0;
+      boxes.forEach((b, i) => { if (b.length < 2) return;
+        const lo = [255, 255, 255], hi = [0, 0, 0]; let w = 0;
+        b.forEach(c => { for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], c[k]); hi[k] = Math.max(hi[k], c[k]); } w += c[3]; });
+        const rng = hi.map((v, k) => v - lo[k]), ax = rng.indexOf(Math.max(...rng)), score = rng[ax] * Math.log1p(w);
+        if (score > best) { best = score; bi = i; bax = ax; } });
+      if (bi < 0) break;
+      const b = boxes.splice(bi, 1)[0].sort((p, q) => p[bax] - q[bax]);
+      const tot = b.reduce((s, c) => s + c[3], 0); let acc = 0, cut = 1;
+      for (let i = 0; i < b.length; i++) { acc += b[i][3]; if (acc >= tot / 2) { cut = i + 1; break; } }
+      cut = Math.min(Math.max(cut, 1), b.length - 1); boxes.push(b.slice(0, cut), b.slice(cut));
+    }
+    return boxes.map(b => { const w = b.reduce((s, c) => s + c[3], 0);
+      return [0, 1, 2].map(k => Math.round(b.reduce((s, c) => s + c[k] * c[3], 0) / w)); });
+  }
+  // DXT1 (opaque) / DXT3 (with transparency): the formats Blizzard's own 3.3.5 creature textures use.
+  const to565 = c => ((Math.round(c[0]) >> 3) << 11) | ((Math.round(c[1]) >> 2) << 5) | (Math.round(c[2]) >> 3);
+  const from565 = v => { const r = (v >> 11) & 31, g = (v >> 5) & 63, b = v & 31; return [(r << 3) | (r >> 2), (g << 2) | (g >> 4), (b << 3) | (b >> 2)]; };
+  function colorBlock(px, out) { // px: 16 x [r,g,b]; appends 8 bytes, always 4-colour mode
+    const mean = [0, 1, 2].map(k => px.reduce((s, p) => s + p[k], 0) / 16);
+    const C = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    for (const p of px) { const d = [p[0] - mean[0], p[1] - mean[1], p[2] - mean[2]];
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i * 3 + j] += d[i] * d[j]; }
+    let ax = [1, 1, 1];
+    for (let it = 0; it < 8; it++) { const n = [0, 1, 2].map(i => C[i * 3] * ax[0] + C[i * 3 + 1] * ax[1] + C[i * 3 + 2] * ax[2]);
+      const l = Math.hypot(...n); if (l < 1e-9) break; ax = n.map(x => x / l); }
+    let lo = 0, hi = 0;
+    for (const p of px) { const t = (p[0] - mean[0]) * ax[0] + (p[1] - mean[1]) * ax[1] + (p[2] - mean[2]) * ax[2]; lo = Math.min(lo, t); hi = Math.max(hi, t); }
+    const clamp = c => c.map(x => Math.max(0, Math.min(255, x)));
+    let c0 = to565(clamp(mean.map((m, k) => m + ax[k] * hi))), c1 = to565(clamp(mean.map((m, k) => m + ax[k] * lo)));
+    if (c0 < c1) [c0, c1] = [c1, c0];
+    let bits = 0;
+    if (c0 !== c1) {
+      const e0 = from565(c0), e1 = from565(c1);
+      const pal = [e0, e1, e0.map((x, k) => (2 * x + e1[k]) / 3), e0.map((x, k) => (x + 2 * e1[k]) / 3)];
+      px.forEach((p, i) => { let best = 0, bd = Infinity;
+        pal.forEach((q, j) => { const d = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; if (d < bd) { bd = d; best = j; } });
+        bits |= best << (2 * i); });
+    }
+    out.u16(c0).u16(c1).u32(bits >>> 0);
+  }
+  function encodeLevel(lv, alpha) {
+    const W = Math.max(4, Math.ceil(lv.w / 4) * 4), H = Math.max(4, Math.ceil(lv.h / 4) * 4), out = new Bytes(W * H);
+    const at = (x, y) => { const i = (Math.min(lv.h - 1, y) * lv.w + Math.min(lv.w - 1, x)) * 4; return [lv.px[i], lv.px[i + 1], lv.px[i + 2], lv.px[i + 3]]; };
+    for (let by = 0; by < H; by += 4) for (let bx = 0; bx < W; bx += 4) {
+      const blk = []; for (let y = 0; y < 4; y++) for (let x = 0; x < 4; x++) blk.push(at(bx + x, by + y));
+      if (alpha) { let lo = 0, hi = 0;                       // DXT3: 4-bit explicit alpha per pixel
+        blk.forEach((p, i) => { const a = Math.max(0, Math.min(15, Math.round(p[3] / 17)));
+          if (i < 8) lo |= a << (4 * i); else hi |= a << (4 * (i - 8)); });
+        out.u32(lo >>> 0).u32(hi >>> 0); }
+      colorBlock(blk, out);
+    }
+    return out.bytes();
+  }
+  function writeBLP(rgba, w, h) {
+    const W = nextPow2(w), H = nextPow2(h);
+    const px = (W !== w || H !== h) ? resizeNearest(rgba, w, h, W, H) : Uint8ClampedArray.from(rgba);
+    let hasAlpha = false; for (let i = 3; i < px.length; i += 4) if (px[i] < 250) { hasAlpha = true; break; }
+    const mips = []; let lv = { px: Float32Array.from(px), w: W, h: H };
+    while (true) {
+      mips.push(encodeLevel(lv, hasAlpha));
+      if ((lv.w === 1 && lv.h === 1) || mips.length === 16) break;
+      lv = half(lv.px, lv.w, lv.h);
+    }
+    const headerSize = 4 + 4 + 4 + 8 + 128 + 1024; const b = new Bytes(headerSize + mips.reduce((s, m) => s + m.length, 0));
+    // colour encoding 2 = DXT; alpha bits 0 or 8; preferred format 0 = DXT1, 1 = DXT3; has mipmaps
+    b.ascii("BLP2").u32(1).u8(2).u8(hasAlpha ? 8 : 0).u8(hasAlpha ? 1 : 0).u8(1).u32(W).u32(H);
+    let pos = headerSize; const offs = [], sizes = [];
+    mips.forEach(m => { offs.push(pos); sizes.push(m.length); pos += m.length; });
+    for (let i = 0; i < 16; i++) b.u32(offs[i] || 0); for (let i = 0; i < 16; i++) b.u32(sizes[i] || 0);
+    b.raw(new Uint8Array(1024));
+    mips.forEach(m => b.raw(m));
+    return { bytes: b.bytes(), width: W, height: H, resized: W !== w || H !== h };
+  }
+
+  // ---------------------------------------------------------------- ZIP writer (stored, no compression)
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u8) { let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; }
+  function makeZip(files) { // files: [{name, data: Uint8Array}]
+    const out = new Bytes(1 << 20), central = new Bytes(); const enc = s => Uint8Array.from(s, ch => ch.charCodeAt(0) & 0x7f);
+    for (const f of files) {
+      const name = enc(f.name), crc = crc32(f.data), off = out.len;
+      out.u32(0x04034b50).u16(20).u16(0).u16(0).u16(0).u16(0x21).u32(crc).u32(f.data.length).u32(f.data.length).u16(name.length).u16(0).raw(name).raw(f.data);
+      central.u32(0x02014b50).u16(20).u16(20).u16(0).u16(0).u16(0).u16(0x21).u32(crc).u32(f.data.length).u32(f.data.length)
+        .u16(name.length).u16(0).u16(0).u16(0).u16(0).u32(0).u32(off).raw(name);
+    }
+    const cdOff = out.len, cd = central.bytes(); out.raw(cd);
+    out.u32(0x06054b50).u16(0).u16(0).u16(files.length).u16(files.length).u32(cd.length).u32(cdOff).u16(0);
+    return out.bytes();
+  }
+
+  // ---------------------------------------------------------------- OBJ / MTL parsing
+  function parseOBJ(text) {
+    const P = [], T = [], N = [], parts = []; let part = null, mtl = "", oName = null, gName = null; const mtllibs = [];
+    const zUp = /\+Z up/i.test(text.slice(0, 400));
+    const getPart = () => { const name = oName || gName || "Model"; if (!part || part.name !== name) { part = parts.find(p => p.name === name); if (!part) { part = { name, faces: [] }; parts.push(part); } } return part; };
+    const lines = text.split(/\r?\n/);
+    for (let li = 0; li < lines.length; li++) {
+      let line = lines[li]; if (!line || line[0] === "#") continue;
+      while (line.endsWith("\\") && li + 1 < lines.length) line = line.slice(0, -1) + " " + lines[++li];
+      const sp = line.trim().split(/\s+/), k = sp[0];
+      if (k === "v") P.push(+sp[1], +sp[2], +sp[3]);
+      else if (k === "vt") T.push(+sp[1], sp.length > 2 ? +sp[2] : 0);
+      else if (k === "vn") N.push(+sp[1], +sp[2], +sp[3]);
+      else if (k === "o") { oName = sp.slice(1).join(" ") || "Object"; gName = null; part = null; }
+      else if (k === "g") { gName = sp.slice(1).join(" ") || null; if (!oName) part = null; }
+      else if (k === "usemtl") mtl = sp.slice(1).join(" ");
+      else if (k === "mtllib") mtllibs.push(sp.slice(1).join(" "));
+      else if (k === "f") {
+        const nv = P.length / 3, nt = T.length / 2, nn = N.length / 3;
+        const idx = sp.slice(1).map(s => { const q = s.split("/");
+          const fix = (v, n) => { if (v === undefined || v === "") return -1; const i = parseInt(v, 10); return i < 0 ? n + i : i - 1; };
+          return [fix(q[0], nv), fix(q[1], nt), fix(q[2], nn)]; });
+        const p = getPart();
+        for (let i = 1; i + 1 < idx.length; i++) p.faces.push({ c: [idx[0], idx[i], idx[i + 1]], mtl });
+      }
+    }
+    return { P, T, N, parts: parts.filter(p => p.faces.length), mtllibs, zUp };
+  }
+  function parseMTL(text) {
+    const mats = {}; let cur = null;
+    for (const raw of text.split(/\r?\n/)) { const line = raw.trim(); if (!line || line[0] === "#") continue;
+      const sp = line.split(/\s+/);
+      if (sp[0] === "newmtl") { cur = sp.slice(1).join(" "); mats[cur] = {}; }
+      else if (cur && /^map_Kd$/i.test(sp[0])) { const toks = sp.slice(1); let i = 0;
+        while (i < toks.length && toks[i].startsWith("-")) i += ({ "-o": 4, "-s": 4, "-t": 4, "-mm": 3 }[toks[i]] || 2);
+        mats[cur].map = toks.slice(i).join(" ").split(/[\\/]/).pop(); }
+      else if (cur && sp[0] === "Kd") mats[cur].kd = sp.slice(1, 4).map(Number);
+    }
+    return mats;
+  }
+
+  // ---------------------------------------------------------------- model building
+  const WHEEL_RE = /wheel|tire|tyre/i;
+  const BRAKE_RE = /brake/i, LAMP_RE = /^lamp/i;
+  // additive light geometry: parts named ...Glow / ...Beam / Brake..., or using a material named Glow...
+  const isGlowPart = p => /glow|beam|brake/i.test(p.name) || p.faces.some(f => /^glow/i.test(f.mtl));
+  const mul3 = (R, v) => [R[0] * v[0] + R[1] * v[1] + R[2] * v[2], R[3] * v[0] + R[4] * v[1] + R[5] * v[2], R[6] * v[0] + R[7] * v[1] + R[8] * v[2]];
+  const mat3 = (A, B) => { const C = new Array(9); for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) C[i * 3 + j] = A[i * 3] * B[j] + A[i * 3 + 1] * B[3 + j] + A[i * 3 + 2] * B[6 + j]; return C; };
+  const ROT90 = { x: [1, 0, 0, 0, 0, -1, 0, 1, 0], y: [0, 0, 1, 0, 1, 0, -1, 0, 0], z: [0, -1, 0, 1, 0, 0, 0, 0, 1] };
+  const Y_UP_TO_Z_UP = [1, 0, 0, 0, 0, -1, 0, 1, 0]; // OBJ (x, y-up, z) -> (x, -z, y)
+
+  function rawBounds(obj, R) {
+    const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+    const used = new Uint8Array(obj.P.length / 3);
+    obj.parts.forEach(p => { if (!isGlowPart(p)) p.faces.forEach(f => f.c.forEach(c => { used[c[0]] = 1; })); });
+    for (let i = 0; i < used.length; i++) if (used[i]) { const v = mul3(R, [obj.P[i * 3], obj.P[i * 3 + 1], obj.P[i * 3 + 2]]);
+      for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], v[k]); mx[k] = Math.max(mx[k], v[k]); } }
+    return { mn, mx, size: [0, 1, 2].map(k => mx[k] - mn[k]) };
+  }
+
+  /* opts: { R: 3x3 rotation (row-major), scale, name, folder, textures: {materialName -> textureStem} (null = default),
+             defaultTexture: stem, seat: [x,y,z], passenger: bool, reverseSpin: bool, walkSpeed, runSpeed } */
+  function buildModel(obj, opts) {
+    const R = opts.R, s = opts.scale || 1;
+    const rb = rawBounds(obj, R);
+    const off = [-(rb.mn[0] + rb.mx[0]) / 2, -(rb.mn[1] + rb.mx[1]) / 2, -rb.mn[2]];
+    const tf = i => { const v = mul3(R, [obj.P[i * 3], obj.P[i * 3 + 1], obj.P[i * 3 + 2]]); return [(v[0] + off[0]) * s, (v[1] + off[1]) * s, (v[2] + off[2]) * s]; };
+    const warnings = [];
+
+    // bones: Root + one per wheel part
+    const bones = [{ name: "Root", parent: -1, pivot: [0, 0, 0], key_bone: 26, tracks: {} }];
+    const partBone = new Map(); let wheelR = 0;
+    obj.parts.forEach(p => {
+      if (!WHEEL_RE.test(p.name)) return;
+      const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+      p.faces.forEach(f => f.c.forEach(c => { const v = tf(c[0]); for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], v[k]); mx[k] = Math.max(mx[k], v[k]); } }));
+      const wi = bones.length - 1;
+      bones.push({ name: p.name, parent: 0, pivot: [0, 1, 2].map(k => (mn[k] + mx[k]) / 2), key_bone: wi < 8 ? 27 + wi : -1, tracks: {} });
+      partBone.set(p, bones.length - 1);
+      wheelR = Math.max(wheelR, Math.max(mx[0] - mn[0], mx[2] - mn[2]) / 2);
+    });
+    const wheelBones = bones.length - 1;              // bones 1..wheelBones are wheels
+    const brakeBones = [];
+    obj.parts.forEach(p => {                           // Brake... parts: own bone, visible only while standing
+      if (!BRAKE_RE.test(p.name) || partBone.has(p)) return;
+      const mn = [Infinity, Infinity, Infinity], mx = [-Infinity, -Infinity, -Infinity];
+      p.faces.forEach(f => f.c.forEach(c => { const v = tf(c[0]); for (let k = 0; k < 3; k++) { mn[k] = Math.min(mn[k], v[k]); mx[k] = Math.max(mx[k], v[k]); } }));
+      bones.push({ name: p.name, parent: 0, pivot: [0, 1, 2].map(k => (mn[k] + mx[k]) / 2), key_bone: -1, tracks: {} });
+      partBone.set(p, bones.length - 1); brakeBones.push(bones.length - 1);
+    });
+
+    // render settings per part: Lamp... = self-lit, glow parts = additive light (self-lit, no depth write)
+    const materials = [], matIndex = new Map();
+    const matFor = (flags, blend) => { const k = flags + "|" + blend;
+      if (!matIndex.has(k)) { matIndex.set(k, materials.length); materials.push({ flags, blend }); } return matIndex.get(k); };
+    const baseFlags = opts.twoSided ? 0x4 : 0;
+    const partMat = p => isGlowPart(p) ? matFor(0x1 | 0x10, 3) : LAMP_RE.test(p.name) ? matFor(0x1 | baseFlags, 0) : matFor(baseFlags, 0);
+
+    // textures / materials
+    const textures = [], texIndex = new Map();
+    const texFor = mtl => { const stem = (opts.textures && opts.textures[mtl]) || opts.defaultTexture || opts.name;
+      if (!texIndex.has(stem)) { texIndex.set(stem, textures.length);
+        textures.push({ type: 0, flags: 3, path: (opts.folder ? opts.folder.replace(/[\\/]+$/, "") + "\\" : "") + stem + ".blp", stem }); }
+      return texIndex.get(stem); };
+
+    const verts = [], vmap = new Map(), groups = new Map();
+    const hasN = obj.N.length > 0, hasT = obj.T.length > 0;
+    for (const p of obj.parts) {
+      const bone = partBone.has(p) ? partBone.get(p) : 0;
+      const mi = partMat(p);
+      for (const f of p.faces) {
+        const ps = f.c.map(c => tf(c[0]));
+        const e1 = [0, 1, 2].map(k => ps[1][k] - ps[0][k]), e2 = [0, 1, 2].map(k => ps[2][k] - ps[0][k]);
+        let fn = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]];
+        const fl = Math.hypot(...fn); if (fl < 1e-12) continue; fn = fn.map(x => x / fl);
+        const ti = texFor(f.mtl), out = [];
+        f.c.forEach((c, j) => {
+          let n = fn;
+          if (hasN && c[2] >= 0) { const r = mul3(R, [obj.N[c[2] * 3], obj.N[c[2] * 3 + 1], obj.N[c[2] * 3 + 2]]); const l = Math.hypot(...r); if (l > 0) n = r.map(x => x / l); }
+          const sw = opts.swatchUV && opts.swatchUV[f.mtl];
+          const uv = sw ? sw : hasT && c[1] >= 0 ? [obj.T[c[1] * 2], 1 - obj.T[c[1] * 2 + 1]] : [0, 0];
+          const pos = ps[j];
+          const key = pos.map(x => x.toFixed(5)).join() + "|" + n.map(x => x.toFixed(3)).join() + "|" + uv.map(x => x.toFixed(5)).join() + "|" + bone;
+          let idx = vmap.get(key);
+          if (idx === undefined) { idx = verts.length; vmap.set(key, idx); verts.push({ pos, normal: n, uv, bones: [[bone, 1]] }); }
+          out.push(idx);
+        });
+        const gk = ti + "|" + mi;
+        if (!groups.has(gk)) groups.set(gk, []);
+        groups.get(gk).push(out);
+      }
+    }
+    if (!verts.length) throw new Error("The OBJ file has no faces.");
+    const submeshes = [...groups.entries()].map(([k, tris]) => { const [ti, mi] = k.split("|").map(Number);
+      return { tris, texture: ti, material: mi, priority: materials[mi].blend ? 1 : 0 }; })
+      .sort((a, b) => a.priority - b.priority);         // solid parts first, light effects last
+
+    // animations: Stand, Walk, Run. Wheels spin a whole number of turns per loop so the loop is seamless.
+    const sequences = [{ id: 0, duration: 1000, movespeed: 0 }];
+    const speeds = [[4, opts.walkSpeed || 2.5], [5, opts.runSpeed || 7.0]];
+    const circ = 2 * Math.PI * wheelR;
+    const dir = opts.reverseSpin ? -1 : 1;
+    speeds.forEach(([id, speed]) => {
+      const si = sequences.length;
+      if (bones.length > 1 && circ > 0) {
+        const turns = Math.max(1, Math.round(speed / circ)); const dur = Math.round(turns * circ / speed * 1000);
+        sequences.push({ id, duration: dur, movespeed: speed });
+        const steps = turns * 8;
+        for (let b = 1; b <= wheelBones; b++) {
+          const keys = [];
+          for (let k = 0; k <= steps; k++) { const a = dir * 2 * Math.PI * k / 8; keys.push([Math.round(dur * k / steps), [Math.cos(a / 2), 0, Math.sin(a / 2), 0]]); }
+          bones[b].tracks[si] = { rot: keys };
+        }
+      } else sequences.push({ id, duration: 1000, movespeed: speed });
+    });
+    for (const b of brakeBones)                        // full size in Stand (id 0), shrunk to nothing while moving
+      sequences.forEach((sq, si) => { bones[b].tracks[si] = { scale: [[0, sq.id === 0 ? [1, 1, 1] : [0.0001, 0.0001, 0.0001]]] }; });
+
+    const seat = opts.seat || [0, 0, 1];
+    const attachments = [{ id: 0, bone: 0, pos: seat }, { id: 39, bone: 0, pos: seat }];
+    if (opts.passenger) attachments.push({ id: 40, bone: 0, pos: [seat[0], -seat[1], seat[2]] });
+
+    const tooBig = verts.length > 65535;
+    const { mn, mx } = bounds(verts);
+    return {
+      model: { vertices: verts, submeshes, bones, sequences, textures, materials, attachments },
+      info: { size: [0, 1, 2].map(k => mx[k] - mn[k]), verts: verts.length, tris: submeshes.reduce((a, s) => a + s.tris.length, 0),
+              wheels: wheelBones, wheelRadius: wheelR, rawSize: rb.size, warnings, tooBig },
+    };
+  }
+
+  const api = { Bytes, writeM2, writeSkin, writeBLP, makeZip, crc32, parseOBJ, parseMTL, buildModel, rawBounds,
+                compressQuat, decompressQuat, mul3, mat3, ROT90, Y_UP_TO_Z_UP, WHEEL_RE };
+  if (typeof module !== "undefined" && module.exports) module.exports = api; else root.M2Core = api;
+})(typeof self !== "undefined" ? self : this);
+
+</script>
+<script>
+(() => {
+"use strict";
+const C = window.M2Core, $ = id => document.getElementById(id);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+// ------------------------------------------------------------ state
+const S = {
+  obj: null, objName: "", mtl: {}, images: new Map(), // lower stem -> {name, stem, rgba, w, h}
+  baseR: [1,0,0,0,1,0,0,0,1], R: [1,0,0,0,1,0,0,0,1], scale: 1, isExample: true,
+  built: null, tex: null, anim: 2,
+};
+const sanitize = s => (s || "").replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9_]+/g, "_").replace(/^_+|_+$/g, "") || "Model";
+
+// ------------------------------------------------------------ example model (a simple box truck), so the page opens working
+function exampleOBJ() {
+  const L = ["# Example box truck. WoW axes: +X forward, +Y left, +Z up", "mtllib example.mtl"]; let vi = 1;
+  const box = (name, mtl, x0, x1, y0, y1, z0, z1) => {
+    L.push("o " + name, "usemtl " + mtl);
+    const v = [[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1]];
+    v.forEach(p => L.push("v " + p.join(" ")));
+    [[0,3,2,1],[4,5,6,7],[0,1,5,4],[1,2,6,5],[2,3,7,6],[3,0,4,7]].forEach(f => L.push("f " + f.map(i => i + vi).join(" ")));
+    vi += 8;
+  };
+  box("Chassis", "Paint", -2.3, 2.3, -0.95, 0.95, 0.45, 1.05);
+  box("Cab", "Paint", 0.2, 1.7, -0.9, 0.9, 1.05, 1.85);
+  box("Windshield", "Glass", 1.7, 1.72, -0.8, 0.8, 1.15, 1.75);
+  box("Bumper", "Trim", 2.3, 2.45, -0.95, 0.95, 0.4, 0.65);
+  box("Bed rail L", "Trim", -2.3, 0.2, 0.85, 0.95, 1.05, 1.35);
+  box("Bed rail R", "Trim", -2.3, 0.2, -0.95, -0.85, 1.05, 1.35);
+  const wheel = (name, cx, cy) => {
+    L.push("o " + name, "usemtl Tire"); const n = 14, r = 0.42, w = 0.3, s = cy > 0 ? 1 : -1, base = vi;
+    for (let k = 0; k < n; k++) { const a = 2 * Math.PI * k / n; for (const y of [cy - w/2, cy + w/2]) L.push(`v ${cx + r*Math.cos(a)} ${y} ${0.42 + r*Math.sin(a)}`); }
+    L.push(`v ${cx} ${cy - w/2} 0.42`, `v ${cx} ${cy + w/2} 0.42`); vi += 2 * n + 2;
+    for (let k = 0; k < n; k++) { const a0 = base + 2*k, a1 = base + 2*((k+1)%n);
+      L.push(`f ${a0} ${a0+1} ${a1+1} ${a1}`);
+      L.push(`f ${base + 2*n} ${a0} ${a1}`, `f ${base + 2*n + 1} ${a1+1} ${a0+1}`); }
+  };
+  wheel("Wheel_FL", 1.45, 0.86); wheel("Wheel_FR", 1.45, -0.86); wheel("Wheel_RL", -1.45, 0.86); wheel("Wheel_RR", -1.45, -0.86);
+  return L.join("\n");
+}
+const EXAMPLE_MTL = { Paint: { kd: [0.16, 0.42, 0.62] }, Glass: { kd: [0.12, 0.16, 0.2] }, Trim: { kd: [0.62, 0.64, 0.66] }, Tire: { kd: [0.09, 0.09, 0.1] } };
+
+// ------------------------------------------------------------ textures
+function solidSwatches(mtlNames) {
+  // 64x64 palette, 8px cells -> up to 64 colours
+  const rgba = new Uint8ClampedArray(64 * 64 * 4), uv = {};
+  mtlNames.slice(0, 64).forEach((m, i) => {
+    const kd = (S.mtl[m] && S.mtl[m].kd) || [0.7, 0.7, 0.7];
+    const col = kd.map(c => Math.round(Math.max(0, Math.min(1, c)) * 255));
+    const gx = i % 8, gy = Math.floor(i / 8);
+    for (let y = gy * 8; y < gy * 8 + 8; y++) for (let x = gx * 8; x < gx * 8 + 8; x++) { const o = (y * 64 + x) * 4; rgba[o] = col[0]; rgba[o+1] = col[1]; rgba[o+2] = col[2]; rgba[o+3] = 255; }
+    uv[m] = [(gx * 8 + 4) / 64, (gy * 8 + 4) / 64];
+  });
+  return { rgba, w: 64, h: 64, uv };
+}
+function planTextures(name) {
+  const used = [...new Set(S.obj.parts.flatMap(p => p.faces.map(f => f.mtl)))];
+  const textures = {}, data = new Map(), noImage = [];
+  const single = S.images.size === 1 ? [...S.images.values()][0] : null;
+  const anyMap = used.some(m => S.mtl[m] && S.mtl[m].map);
+  for (const m of used) {
+    const map = S.mtl[m] && S.mtl[m].map;
+    let img = map ? S.images.get(sanitize(map).toLowerCase()) : null;
+    if (!img && !map && S.images.has(sanitize(m).toLowerCase())) img = S.images.get(sanitize(m).toLowerCase());
+    if (!img && single && !anyMap) img = single;   // one picture and no .mtl links: use it everywhere
+    if (img) { textures[m] = img.stem; data.set(img.stem, img); } else noImage.push(m);
+  }
+  // files the model asks for but that were not dropped
+  const missing = [];
+  if (!S.isExample) {
+    if (S.obj.mtllibs.length && !Object.keys(S.mtl).length) missing.push(...S.obj.mtllibs.map(f => f.split(/[\\/]/).pop()));
+    for (const m of used) { const map = S.mtl[m] && S.mtl[m].map; if (map && !textures[m] && !missing.includes(map)) missing.push(map); }
+  }
+  let swatchUV = null;
+  if (noImage.length) {
+    const sw = solidSwatches(noImage), stem = sanitize(name) + "_Colors";
+    swatchUV = sw.uv; noImage.forEach(m => { textures[m] = stem; });
+    data.set(stem, { stem, rgba: sw.rgba, w: 64, h: 64, generated: true });
+  }
+  return { textures, data, swatchUV, noImage, missing };
+}
+
+// ------------------------------------------------------------ build
+function opts() {
+  const name = sanitize($("name").value);
+  return { R: S.R, scale: S.scale, name, folder: $("folder").value.trim().replace(/\//g, "\\"),
+    textures: S.tex.textures, swatchUV: S.tex.swatchUV, defaultTexture: name,
+    seat: [+$("seatX").value, +$("seatY").value, +$("seatZ").value], passenger: $("passenger").checked, reverseSpin: $("reverse").checked };
+}
+function rebuild(keepSeat) {
+  if (!S.obj) return;
+  S.tex = planTextures(sanitize($("name").value));
+  try { S.built = C.buildModel(S.obj, opts()); }
+  catch (e) { setStatus(e.message, "bad"); S.built = null; return; }
+  const inf = S.built.info, f = n => n.toFixed(2);
+  $("sizeStats").innerHTML = `<span>Size <b>${f(inf.size[0])} × ${f(inf.size[1])} × ${f(inf.size[2])}</b> yd</span><span>long × wide × tall</span>`;
+  $("buildStats").innerHTML = `<span><b>${inf.tris.toLocaleString()}</b> triangles</span><span><b>${inf.verts.toLocaleString()}</b> / 65,535 corners</span><span><b>${S.tex.data.size}</b> texture${S.tex.data.size === 1 ? "" : "s"}</span>`;
+  $("wheelNote").innerHTML = inf.wheels ? `<span class="pill">${inf.wheels} wheel${inf.wheels > 1 ? "s" : ""} found</span> radius ${f(inf.wheelRadius)} yd` :
+    `<span class="pill warn">No wheels found</span> Parts named “Wheel…” spin; this model will move without spinning parts.`;
+  if (!keepSeat) placeSeatDefaults();
+  $("save").disabled = !!inf.tooBig;
+  if (inf.tooBig) setStatus(`Too detailed for WoW 3.3.5a: ${inf.verts.toLocaleString()} corners, the limit is 65,535. Reduce it first (Blender: Decimate modifier).`, "bad");
+  else if (S.tex.missing.length) setStatus(missingText(), "bad");
+  else setStatus("", "");
+  View.setModel(S.built, S.tex);
+  View.setSeat();
+}
+function missingText() {
+  return `Missing ${S.tex.missing.join(" and ")}. Drop ${S.tex.missing.length > 1 ? "them" : "it"} too, or the model will be plain grey in the game.`;
+}
+function placeSeatDefaults() {
+  const sz = S.built.info.size;
+  const set = (id, min, max, v) => { const el = $(id); el.min = min; el.max = max; el.value = v; };
+  set("seatX", (-sz[0] / 2).toFixed(2), (sz[0] / 2).toFixed(2), (sz[0] * 0.03).toFixed(2));
+  set("seatY", (-sz[1] / 2).toFixed(2), (sz[1] / 2).toFixed(2), (S.built.info.wheels ? sz[1] * 0.25 : 0).toFixed(2));
+  set("seatZ", 0, (sz[2] * 1.3).toFixed(2), (sz[2] * 0.5).toFixed(2));
+  syncOutputs();
+}
+function syncOutputs() { ["seatX", "seatY", "seatZ"].forEach(id => { $(id + "o").textContent = (+$(id).value).toFixed(2); }); }
+function setStatus(msg, kind) { const el = $("status"); el.textContent = msg; el.className = "status" + (kind ? " " + kind : ""); }
+
+function setOBJ(text, fileName, isExample) {
+  const obj = C.parseOBJ(text);
+  if (!obj.parts.length) { setStatus(`${fileName} has no faces to convert.`, "bad"); return; }
+  S.obj = obj; S.isExample = !!isExample; $("exampleTag").hidden = !isExample;
+  S.baseR = obj.zUp ? [1,0,0,0,1,0,0,0,1] : C.Y_UP_TO_Z_UP.slice();
+  // vehicles are longer than wide: put the long side along the front axis
+  let R = S.baseR; const b = C.rawBounds(obj, R);
+  if (b.size[1] > b.size[0] * 1.15) R = C.mat3(C.ROT90.z, R);
+  S.baseR = R; S.R = R.slice();
+  const b2 = C.rawBounds(obj, S.R), longest = Math.max(b2.size[0], b2.size[1]);
+  S.scale = (longest > 30 || longest < 0.3) ? 5 / longest : 1;
+  $("len").value = (b2.size[0] * S.scale).toFixed(2);
+  if (!isExample) { const n = sanitize(fileName); $("name").value = n; $("folder").value = "Creature\\" + n; }
+  rebuild(false);
+}
+
+// ------------------------------------------------------------ files
+async function decodeImage(file) {
+  const bmp = await createImageBitmap(file);
+  const cv = document.createElement("canvas"); cv.width = bmp.width; cv.height = bmp.height;
+  const cx = cv.getContext("2d"); cx.drawImage(bmp, 0, 0);
+  return { rgba: cx.getImageData(0, 0, bmp.width, bmp.height).data, w: bmp.width, h: bmp.height };
+}
+async function handleFiles(list) {
+  const files = [...list]; if (!files.length) return;
+  setStatus("Reading files…", "");
+  let objFile = null; const notes = [];
+  if (S.isExample && files.some(f => /\.obj$/i.test(f.name))) S.mtl = {};
+  for (const f of files) {
+    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    try {
+      if (ext === "obj") objFile = f;
+      else if (ext === "mtl") Object.assign(S.mtl, C.parseMTL(await f.text()));
+      else if (["png", "jpg", "jpeg", "webp", "bmp", "gif"].includes(ext)) {
+        const im = await decodeImage(f), stem = sanitize(f.name);
+        S.images.set(stem.toLowerCase(), { name: f.name, stem, ...im });
+      } else notes.push(`${f.name}: not used (only .obj, .mtl and pictures).`);
+    } catch (e) { notes.push(`${f.name}: could not be read (${e.message}).`); }
+  }
+  if (objFile) {
+    S.objName = objFile.name;
+    setOBJ(await objFile.text(), objFile.name, false);
+  } else if (S.obj) rebuild(true);
+  renderFileList();
+  if (notes.length) setStatus(notes.join(" "), "bad");
+  else if (!objFile && S.isExample) setStatus("Pictures added. Now drop your .obj model too.", "");
+}
+function renderFileList() {
+  const ul = $("fileList"); ul.textContent = "";
+  const add = (n, tag) => { const li = document.createElement("li"); const a = document.createElement("span"); a.textContent = n;
+    const b = document.createElement("span"); b.className = "tag"; b.textContent = tag; li.append(a, b); ul.append(li); };
+  if (S.objName) add(S.objName, `${S.obj.parts.length} part${S.obj.parts.length === 1 ? "" : "s"}${S.obj.zUp ? " · Z up" : ""}`);
+  const nm = S.isExample ? 0 : Object.keys(S.mtl).length;
+  if (nm) add("materials", `${nm} from .mtl`);
+  for (const im of S.images.values()) add(im.name, `${im.w}×${im.h}`);
+  if (S.tex) for (const f of S.tex.missing) { const li = document.createElement("li"); li.className = "missing";
+    const a = document.createElement("span"); a.textContent = f; const b = document.createElement("span"); b.className = "tag"; b.textContent = "missing, drop it too"; li.append(a, b); ul.append(li); }
+}
+const drop = $("drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => handleFiles(e.dataTransfer.files));
+document.addEventListener("dragover", e => e.preventDefault());
+document.addEventListener("drop", e => { if (!drop.contains(e.target)) { e.preventDefault(); handleFiles(e.dataTransfer.files); } });
+$("pick").addEventListener("change", e => { handleFiles(e.target.files); e.target.value = ""; });
+
+// ------------------------------------------------------------ controls
+const rot = axis => { S.R = C.mat3(C.ROT90[axis], S.R); const b = C.rawBounds(S.obj, S.R); $("len").value = (b.size[0] * S.scale).toFixed(2); rebuild(false); };
+$("rotZ").onclick = () => rot("z"); $("rotY").onclick = () => rot("y"); $("rotX").onclick = () => rot("x");
+$("rotReset").onclick = () => { S.R = S.baseR.slice(); const b = C.rawBounds(S.obj, S.R); $("len").value = (b.size[0] * S.scale).toFixed(2); rebuild(false); };
+$("len").addEventListener("change", () => { const v = +$("len").value; if (!(v > 0)) return; const b = C.rawBounds(S.obj, S.R); if (b.size[0] > 0) { S.scale = v / b.size[0]; rebuild(false); } });
+["seatX", "seatY", "seatZ"].forEach(id => $(id).addEventListener("input", () => { syncOutputs(); View.setSeat(); }));
+$("passenger").addEventListener("change", () => View.setSeat());
+$("reverse").addEventListener("change", () => { if (S.built) View.reverse = $("reverse").checked ? -1 : 1; });
+$("name").addEventListener("change", () => { const n = sanitize($("name").value); $("name").value = n; if (/^Creature\\[^\\]*$/.test($("folder").value)) $("folder").value = "Creature\\" + n; rebuild(true); });
+document.querySelectorAll("[data-anim]").forEach(b => b.onclick = () => {
+  S.anim = +b.dataset.anim; document.querySelectorAll("[data-anim]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => {
+  View.preset(b.dataset.view); document.querySelectorAll("[data-view]").forEach(x => x.setAttribute("aria-pressed", x === b)); });
+
+// ------------------------------------------------------------ save
+function installText(name, folder, files) {
+  return [
+    `${name} — World of Warcraft 3.3.5a mount model`, `Made with M2 Mount Workshop`, ``,
+    `FILES (keep these paths inside your patch MPQ)`, ...files.map(f => "  " + f.replace(/\//g, "\\")), ``,
+    `1. PATCH`, `   Open Ladik's MPQ Editor, create patch-5.MPQ (any free number), and add the`,
+    `   "Creature" folder from this zip so the paths above stay the same.`, ``,
+    `2. DBC ROWS (WDBX Editor). Put the edited files in the patch under DBFilesClient\\`,
+    `   AND in your server's data/dbc folder.`,
+    `   CreatureModelData.dbc   new row, e.g. ID 3000`,
+    `     ModelName = ${folder}\\${name}.mdx      (3.3.5a DBCs say .mdx; the game loads the .m2)`,
+    `     copy the other columns from an existing mount row`,
+    `   CreatureDisplayInfo.dbc  new row, e.g. ID 99001`,
+    `     ModelID = 3000, CreatureModelScale = 1, TextureVariation_1 empty (texture is built in)`, ``,
+    `3. TEST`, `   Copy patch-5.MPQ into WoW\\Data\\ on the client, restart the game, log in and type:`, `     .morph 99001`, ``,
+    `4. USE IT AS THE TRUCK MOUNT (mod-truck-mount)`, `   In mod_truck_mount.conf set:  TruckMount.DisplayId = 99001   then restart worldserver.`, ``,
+    `INSIDE THE MODEL`, `   Animations: Stand (0), Walk (4), Run (5). Wheels spin in Walk and Run.`,
+    `   Rider points: 0 = mount rider, 39 = vehicle seat 1 (driver), 40 = vehicle seat 2 (passenger).`, ``,
+  ].join("\r\n");
+}
+$("save").onclick = async () => {
+  if (!S.built) return;
+  const btn = $("save"); btn.disabled = true; setStatus("Building files…", "");
+  await new Promise(r => setTimeout(r, 20));
+  try {
+    const o = opts(), { model } = C.buildModel(S.obj, o);
+    if (model.vertices.length > 65535) throw new Error("Too many corners for WoW 3.3.5a (max 65,535).");
+    const folder = o.folder.replace(/[\\/]+$/, ""), dir = folder.replace(/\\/g, "/") + "/";
+    const files = [{ name: dir + o.name + ".m2", data: C.writeM2(model, o.name) }, { name: dir + o.name + "00.skin", data: C.writeSkin(model) }];
+    const notes = [];
+    for (const t of model.textures) {
+      const src = S.tex.data.get(t.stem); if (!src) continue;
+      const b = C.writeBLP(src.rgba, src.w, src.h); files.push({ name: dir + t.stem + ".blp", data: b.bytes });
+      if (b.resized) notes.push(`${t.stem} resized to ${b.width}×${b.height} (WoW needs sizes like 256, 512, 1024)`);
+    }
+    files.push({ name: "HOW_TO_INSTALL.txt", data: new TextEncoder().encode(installText(o.name, folder, files.map(f => f.name))) });
+    const zip = C.makeZip(files), filename = o.name + "_WoW_335.zip";
+    const dl = await downloadsCap;
+    if (dl) {
+      try { await dl.save({ filename, data: new Blob([zip]) });
+        if (S.tex.missing.length) setStatus(`Saved ${filename}, but it has no picture: ${missingText()}`, "bad");
+        else setStatus(`Saved ${filename}. ${notes.join(". ")}`, "ok"); }
+      catch (e) { setStatus(e && e.code === "declined" ? "Download cancelled." : `Could not save: ${(e && e.message) || e}`, e && e.code === "declined" ? "" : "bad"); }
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([zip], { type: "application/zip" })); a.download = filename;
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      if (S.tex.missing.length) setStatus(`Saved ${filename}, but it has no picture: ${missingText()}`, "bad");
+      else setStatus(`Saved ${filename}. ${notes.join(". ")}`, "ok");
+    }
+    window.__lastZip = zip;
+  } catch (e) { setStatus(e.message, "bad"); }
+  btn.disabled = false;
+};
+const downloadsCap = (async () => { try { return window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { return null; } })();
+
+// ------------------------------------------------------------ 3D view (three.js). WoW (x fwd, y left, z up) -> three (x, z, -y)
+const View = (() => {
+  const box = $("box"), cv = $("cv");
+  let renderer = null;
+  try { renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true }); } catch (e) { $("noscene").hidden = false; }
+  if (!renderer || !window.THREE) return { setModel() {}, setSeat() {}, preset() {}, reverse: 1 };
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.65); sun.position.set(4, 9, 6); scene.add(sun);
+  const back = new THREE.DirectionalLight(0xffffff, 0.25); back.position.set(-6, 4, -5); scene.add(back);
+  const W = (x, y, z) => new THREE.Vector3(x, z, -y);
+  let grid = null, modelGroup = new THREE.Group(), wheels = [], seatGroup = new THREE.Group(), arrow = new THREE.Group();
+  scene.add(modelGroup, seatGroup, arrow);
+  let orbit = { az: -0.75, el: 0.32, dist: 9, target: new THREE.Vector3(0, 0.8, 0) }, info = null;
+
+  function themeColors() {
+    const c = n => new THREE.Color(css(n) || "#888");
+    scene.background = c("--bay");
+    if (grid) scene.remove(grid);
+    const size = 16; grid = new THREE.GridHelper(size, size, c("--muted"), c("--line")); scene.add(grid);
+    arrowMat.color = c("--accent"); riderMat.color = c("--accent");
+  }
+  const arrowMat = new THREE.MeshBasicMaterial({ color: 0xb4650f, side: THREE.DoubleSide });
+  const riderMat = new THREE.MeshLambertMaterial({ color: 0xb4650f, transparent: true, opacity: 0.85 });
+
+  function makeArrow(len) {
+    arrow.clear();
+    const sh = new THREE.Shape(); const L = 0.9, w = 0.18, hw = 0.42, hl = 0.45;
+    sh.moveTo(0, -w); sh.lineTo(L - hl, -w); sh.lineTo(L - hl, -hw); sh.lineTo(L, 0); sh.lineTo(L - hl, hw); sh.lineTo(L - hl, w); sh.lineTo(0, w); sh.closePath();
+    const m = new THREE.Mesh(new THREE.ShapeGeometry(sh), arrowMat); m.rotation.x = -Math.PI / 2; m.position.set(len / 2 + 0.35, 0.01, 0); arrow.add(m);
+    const cvs = document.createElement("canvas"); cvs.width = 256; cvs.height = 64; const g = cvs.getContext("2d");
+    g.font = "600 40px 'Barlow Semi Condensed', Arial Narrow, sans-serif"; g.fillStyle = css("--accent") || "#b4650f"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("FRONT", 128, 34);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cvs), depthTest: false }));
+    sp.scale.set(1.2, 0.3, 1); sp.position.set(len / 2 + 0.8, 0.35, 0); arrow.add(sp);
+  }
+  function rider(p) {
+    const g = new THREE.Group();
+    const add = (geo, x, y, z, rx, rz) => { const m = new THREE.Mesh(geo, riderMat); m.position.set(x, y, z); if (rx) m.rotation.x = rx; if (rz) m.rotation.z = rz; g.add(m); };
+    add(new THREE.SphereGeometry(0.17, 16, 12), 0, 0, 0);                                 // hips
+    add(new THREE.CylinderGeometry(0.16, 0.14, 0.62, 14), 0, 0.33, 0);                    // torso
+    add(new THREE.SphereGeometry(0.15, 16, 12), 0, 0.8, 0);                               // head
+    for (const s of [-1, 1]) { add(new THREE.CylinderGeometry(0.07, 0.07, 0.45, 10), 0.22, -0.02, s * 0.1, 0, Math.PI / 2);   // thighs
+                               add(new THREE.CylinderGeometry(0.06, 0.06, 0.42, 10), 0.44, -0.23, s * 0.1); }               // shins
+    g.position.copy(W(...p)); return g;
+  }
+  function setSeat() {
+    seatGroup.clear(); if (!info) return;
+    const p = [+$("seatX").value, +$("seatY").value, +$("seatZ").value];
+    seatGroup.add(rider(p)); if ($("passenger").checked) seatGroup.add(rider([p[0], -p[1], p[2]]));
+  }
+  function texFor(stem, data) {
+    const src = data.get(stem); if (!src) return null;
+    const c = document.createElement("canvas"); c.width = src.w; c.height = src.h;
+    c.getContext("2d").putImageData(new ImageData(new Uint8ClampedArray(src.rgba), src.w, src.h), 0, 0);
+    const t = new THREE.CanvasTexture(c); t.flipY = false; if (src.generated) { t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; }
+    return t;
+  }
+  function setModel(built, tex) {
+    modelGroup.clear(); wheels = []; info = built.info;
+    const m = built.model, mats = m.textures.map(t => new THREE.MeshLambertMaterial({ map: texFor(t.stem, tex.data), color: 0xffffff }));
+    const groups = m.bones.map((b, i) => { const g = new THREE.Group(); g.position.copy(W(...b.pivot)); modelGroup.add(g); if (i) wheels.push(g); return { g, pos: [], nrm: [], uv: [], byTex: new Map() }; });
+    for (const sm of m.submeshes) for (const t of sm.tris) {
+      const bi = m.vertices[t[0]].bones[0][0], G = groups[bi], piv = m.bones[bi].pivot;
+      if (!G.byTex.has(sm.texture)) G.byTex.set(sm.texture, { pos: [], nrm: [], uv: [] });
+      const A = G.byTex.get(sm.texture);
+      for (const vi of t) { const v = m.vertices[vi];
+        A.pos.push(v.pos[0] - piv[0], v.pos[2] - piv[2], -(v.pos[1] - piv[1])); A.nrm.push(v.normal[0], v.normal[2], -v.normal[1]); A.uv.push(v.uv[0], v.uv[1]); }
+    }
+    groups.forEach(G => G.byTex.forEach((A, ti) => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.Float32BufferAttribute(A.pos, 3)); geo.setAttribute("normal", new THREE.Float32BufferAttribute(A.nrm, 3)); geo.setAttribute("uv", new THREE.Float32BufferAttribute(A.uv, 2));
+      G.g.add(new THREE.Mesh(geo, mats[ti]));
+    }));
+    View.seqs = m.sequences; View.reverse = $("reverse").checked ? -1 : 1;
+    makeArrow(info.size[0]);
+    const r = Math.max(info.size[0], info.size[1], info.size[2]);
+    orbit.target.set(0, info.size[2] * 0.45, 0); orbit.dist = Math.max(3, r * 2.1); place();
+  }
+  function place() {
+    const { az, el, dist, target } = orbit;
+    cam.position.set(target.x + dist * Math.cos(el) * Math.cos(az), target.y + dist * Math.sin(el), target.z - dist * Math.cos(el) * Math.sin(az));
+    cam.lookAt(target);
+  }
+  function preset(v) {
+    const P = { persp: [-0.75, 0.32], side: [-Math.PI / 2, 0.06], front: [0, 0.08], top: [-Math.PI / 2, 1.5] }[v] || [-0.75, 0.32];
+    orbit.az = P[0]; orbit.el = P[1]; place();
+  }
+  // pointer orbit + wheel zoom
+  let drag = null;
+  cv.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, az: orbit.az, el: orbit.el }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener("pointermove", e => { if (!drag) return; orbit.az = drag.az + (e.clientX - drag.x) * 0.008; orbit.el = Math.max(-0.2, Math.min(1.5, drag.el + (e.clientY - drag.y) * 0.006)); place(); });
+  cv.addEventListener("pointerup", () => { drag = null; }); cv.addEventListener("pointercancel", () => { drag = null; });
+  cv.addEventListener("wheel", e => { e.preventDefault(); orbit.dist = Math.max(1, Math.min(80, orbit.dist * Math.exp(e.deltaY * 0.0012))); place(); }, { passive: false });
+  function resize() { const w = box.clientWidth, h = box.clientHeight; renderer.setSize(w, h, false); cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(box); resize();
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const axis = new THREE.Vector3(0, 0, -1); // WoW +Y in three space
+  function frame(t) {
+    const api = View;
+    if (api.seqs && wheels.length) {
+      // same motion as the exported Walk/Run tracks: 8 keys per wheel turn over the sequence duration
+      const seq = api.seqs[S.anim], tr = seq && S.built && S.built.model.bones[1].tracks[S.anim];
+      let ang = 0;
+      if (tr && tr.rot && !reduce.matches) { const turns = (tr.rot.length - 1) / 8;
+        ang = (api.reverse || 1) * 2 * Math.PI * turns * (t % seq.duration) / seq.duration; }
+      wheels.forEach(g => g.setRotationFromAxisAngle(axis, ang));
+    }
+    renderer.render(scene, cam); requestAnimationFrame(frame);
+  }
+  themeColors(); requestAnimationFrame(frame);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { themeColors(); if (info) makeArrow(info.size[0]); });
+  new MutationObserver(() => { themeColors(); if (info) makeArrow(info.size[0]); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  return { setModel, setSeat, preset, reverse: 1, seqs: null };
+})();
+
+// ------------------------------------------------------------ start with the example
+S.mtl = Object.assign({}, EXAMPLE_MTL);
+setOBJ(exampleOBJ(), "example.obj", true);
+renderFileList();
+setStatus("Example loaded. Drop your own .obj to replace it.", "");
+})();
+</script>
